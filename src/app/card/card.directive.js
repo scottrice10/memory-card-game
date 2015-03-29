@@ -26,9 +26,7 @@ angular.module('memory')
             scope.addToRevealedCards(card, function(isTurnOver, isRemove) {
               if(isTurnOver) {
                 var revealed = jQuery('.revealed');
-                if(isRemove) {
-                  revealed.css('background', 'none');
-                } else {
+                if(!isRemove) {
                   revealed.css('background', 'url(assets/card-back.png) no-repeat');
                 }
 

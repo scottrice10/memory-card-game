@@ -65,7 +65,7 @@ angular.module('memory')
       if(!isGameOver) {
         $timeout(function() {
           callback(isTurnOver, isRemove);
-        }, 2000);
+        }, 1500);
       }
     };
 
