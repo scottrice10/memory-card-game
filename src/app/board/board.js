@@ -4,6 +4,6 @@ angular.module('memory')
     $stateProvider
       .state('board', {
         controller: 'BoardCtrl',
-        templateUrl: '/board/board.html'
+        templateUrl: '/memory/board/board.html'
       });
   });

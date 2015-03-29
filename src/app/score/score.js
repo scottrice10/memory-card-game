@@ -3,7 +3,7 @@ angular.module('memory')
     'use strict';
     $stateProvider
       .state('score', {
-        templateUrl: '/score/score.html',
+        templateUrl: '/memory/score/score.html',
         controller: 'ScoreCtrl'
       });
   });

@@ -10,18 +10,18 @@ angular.module('memory', [
         views: {
           // the main template
           '': {
-            templateUrl: '/app.html'
+            templateUrl: '/memory/app.html'
           },
 
           // the child view
           'board@app': {
             controller: 'BoardCtrl',
-            templateUrl: '/board/board.html'
+            templateUrl: '/memory/board/board.html'
           },
 
           'score@app': {
             controller: 'ScoreCtrl',
-            templateUrl: '/score/score.html'
+            templateUrl: '/memory/score/score.html'
           }
         }
       });

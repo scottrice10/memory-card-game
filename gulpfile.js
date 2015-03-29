@@ -142,6 +142,11 @@ gulp.task('statics', g.serve({
   root: ['./.tmp', './.tmp/src/app', './src/app', './bower_components']
 }));
 
+gulp.task('statics-dist', g.serve({
+  port: 80,
+  root: ['./dist']
+}));
+
 /**
  * Watch
  */
@@ -166,6 +171,13 @@ gulp.task('watch', ['statics', 'default'], function () {
       g.livereload.changed(evt);
     }
   });
+});
+
+gulp.task('serve:dist', ['dist', 'watch-dist']);
+gulp.task('watch-dist', ['statics-dist'], function () {
+  isWatching = true;
+  // Initiate livereload server:
+  g.livereload.listen();
 });
 
 /**

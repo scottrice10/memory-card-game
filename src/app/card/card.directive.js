@@ -6,7 +6,7 @@ angular.module('memory')
       scope: {
         card: '='
       },
-      templateUrl: 'card/card.html',
+      templateUrl: '/memory/card/card.html',
       link: function memCardLink(scope, element) {
         var setCard = function() {
           element.css('background', 'url(assets/card-back.png) no-repeat');
