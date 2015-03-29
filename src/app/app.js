@@ -1,16 +1,11 @@
-
 angular.module('memory', [
-  'ngRoute',
-  'memory.todo'
+  'ui.router',
+  'LocalStorageModule'
 ])
-.config(function ($routeProvider) {
-  'use strict';
-  $routeProvider
-    .when('/todo', {
-      controller: 'TodoCtrl',
-      templateUrl: '/memory/todo/todo.html'
-    })
-    .otherwise({
-      redirectTo: '/todo'
-    });
-});
+  .config(function($urlRouterProvider, $locationProvider) {
+    'use strict';
+    $urlRouterProvider
+      .otherwise('/');
+
+    $locationProvider.html5Mode(true);
+  });

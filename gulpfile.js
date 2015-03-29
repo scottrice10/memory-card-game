@@ -214,7 +214,7 @@ function testFiles() {
     .queue(gulp.src(fileTypeFilter(bowerFiles(), 'js')))
     .queue(gulp.src('./bower_components/angular-mocks/angular-mocks.js'))
     .queue(appFiles())
-    .queue(gulp.src(['./src/app/**/*_test.js', './.tmp/src/app/**/*_test.js']))
+    .queue(gulp.src(['./src/app/**/*.spec.js', './.tmp/src/app/**/*.spec.js']))
     .done();
 }
 
@@ -232,9 +232,9 @@ function appFiles () {
   var files = [
     './.tmp/' + bower.name + '-templates.js',
     './.tmp/src/app/**/*.js',
-    '!./.tmp/src/app/**/*_test.js',
+    '!./.tmp/src/app/**/*.spec.js',
     './src/app/**/*.js',
-    '!./src/app/**/*_test.js'
+    '!./src/app/**/*.spec.js'
   ];
   return gulp.src(files)
     .pipe(g.angularFilesort());
