@@ -1,5 +1,5 @@
 <ul class="board-list">
   <li ng-repeat="card in cards track by $index">
-    <mem-card card="card" ng-class="{removed: card.removed}"></mem-card>
+    <mem-card id="{{card.value + card.suitName}}" card="card" ng-class="{removed: card.removed}"></mem-card>
   </li>
 </ul>

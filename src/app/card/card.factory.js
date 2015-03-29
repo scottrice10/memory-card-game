@@ -6,6 +6,7 @@ angular.module('memory')
     card.create = function(value, suit) {
       return {
         revealed: false,
+        visited: false,
         removed: false,
         value: value,
         suitName: suit,
