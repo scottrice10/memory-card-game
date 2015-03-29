@@ -6,7 +6,8 @@ angular.module('memory')
     card.create = function(value, suit) {
       return {
         revealed: false,
-        value: !value || 10 < value ? 10 : value,
+        removed: false,
+        value: value,
         suitName: suit,
         rankName: (function() {
           switch(value) {
