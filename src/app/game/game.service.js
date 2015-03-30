@@ -19,7 +19,7 @@ angular.module('memory')
     };
 
     game.flip = function(card, element) {
-      if(card.removed || card.revealed || game.pause) {
+      if(card.removed || card.revealed || game.pause || !card.value) {
         return;
       }
 
@@ -87,9 +87,9 @@ angular.module('memory')
             // if revealed cards are a match, remove them from the deck
             // else reset the revealed cards to be not revealed
             if(isMatch) {
+              updateRemainingCards(currDeck[i].value, currDeck[i].suitName);
               currDeck[i].value = null;
               currDeck[i].removed = true;
-              updateRemainingCards(i);
             } else {
               currDeck[i].revealed = false;
             }
@@ -141,10 +141,14 @@ angular.module('memory')
       }
     }
 
-    function updateRemainingCards(indexOfCardToRemove) {
-      if(indexOfCardToRemove) {
-        game.remainingCards.splice(indexOfCardToRemove, 1);
-        localStorageService.set('mem.remainingCards', game.remainingCards);
+    function updateRemainingCards(value, suitName) {
+      if(value && suitName) {
+        for(var i = 0; i < game.remainingCards.length; i++) {
+          if(game.remainingCards[i].value === value && game.remainingCards[i].suitName === suitName) {
+            game.remainingCards.splice(i, 1);
+            return localStorageService.set('mem.remainingCards', game.remainingCards);
+          }
+        }
       } else {
         game.remainingCards = angular.copy(deckService.deck);
         localStorageService.set('mem.remainingCards', deckService.deck);
@@ -152,24 +156,21 @@ angular.module('memory')
     }
 
     function updateCardsVisitedMap(card, deleteIndex) {
-      if(card && card.value !== null && typeof deleteIndex !== 'undefined' && game.cardsVisitedMap[card.value]) {
+      if(card && card.value && typeof deleteIndex !== 'undefined' && game.cardsVisitedMap[card.value]) {
         game.cardsVisitedMap[card.value].splice(deleteIndex, 1);
-      } else if(card && card.value !== null) {
+      } else if(card && card.value) {
         if(game.cardsVisitedMap[card.value]) {
-
           //check whether the card has already been visited
           var cardArray = game.cardsVisitedMap[card.value];
-          var notYetVisited = true;
           for(var i = 0; i < cardArray.length; i++) {
             if(cardArray[i].value === card.value && cardArray[i].suitName === card.suitName) {
-              notYetVisited = false;
               break;
             }
-          }
 
-          // if the card has not yet been visited and put into our hashmap, put it in now
-          if(card && notYetVisited) {
-            game.cardsVisitedMap[card.value].push(card);
+            // if the card is not yet in our hashmap, put it in now
+            if(i === cardArray.length - 1){
+              game.cardsVisitedMap[card.value].push(card);
+            }
           }
         } else {
           game.cardsVisitedMap[card.value] = [card];
@@ -182,30 +183,37 @@ angular.module('memory')
     }
 
     function playComputerHand() {
+
       if(checkForMatchInVisitedMap()) {
         return playComputerHand();
       }
 
-      computerSelectCard();
+      computerSelectCard(function(){
+        // after computer selects first card, check a second time for match from visited cards
+        if(checkForMatchInVisitedMap()) {
+          return playComputerHand();
+        }
+      });
 
-      // after computer selects first card, check a second time for match from visited cards
-      if(checkForMatchInVisitedMap()) {
-        return playComputerHand();
-      }
+      computerSelectCard(function(){
 
-      computerSelectCard();
+      });
     }
 
-    function computerSelectCard() {
+    var count = 0;
+    function computerSelectCard(callback) {
       for(var i = 0; i < game.remainingCards.length; i++) {
-        var card = game.remainingCards[i];
-        if(!card.visited) {
-          console.log("visited card:", card.value + card.suitName);
-          card.visited = true;
-          updateCardsVisitedMap(card);
-          return game.flip(card, jQuery('#' + card.value + card.suitName));
+        if(!game.remainingCards[i].visited && game.remainingCards[i].value) {
+          console.log("visited card:" + game.remainingCards[i].value + game.remainingCards[i].suitName + " and count: ", count += 1);
+          updateCardsVisitedMap(game.remainingCards[i]);
+          game.remainingCards[i].visited = true;
+          localStorageService.set('mem.remainingCards', game.remainingCards);
+          game.flip(game.remainingCards[i], jQuery('#' + game.remainingCards[i].value + game.remainingCards[i].suitName));
+          break;
         }
       }
+
+      callback();
     }
 
     function checkForMatchInVisitedMap() {
