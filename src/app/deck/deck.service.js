@@ -1,5 +1,5 @@
 angular.module('memory')
-  .factory('deckService', function(cardFactory, localStorageService) {
+  .factory('deckService', function($q, cardFactory, localStorageService) {
     'use strict';
     var deck = {};
     deck.deck = localStorageService.get('mem.deck') ? localStorageService.get('mem.deck') : newDeck();
@@ -9,8 +9,12 @@ angular.module('memory')
     };
 
     deck.updateDeck = function(callback) {
+      var deferred = $q.defer();
       deck.deck = callback(deck.deck);
       localStorageService.set('mem.deck', deck.deck);
+
+      deferred.resolve();
+      return deferred.promise;
     };
 
     function sortedDeck() {
