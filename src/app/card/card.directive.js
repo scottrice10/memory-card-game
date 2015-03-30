@@ -8,7 +8,9 @@ angular.module('memory')
       },
       templateUrl: '/memory/card/card.html',
       link: function memCardLink(scope, element) {
-        scope.flip(scope.card, element);
+        scope.flipCard = function(){
+          scope.flip(scope.card, element);
+        };
 
         //init
         scope.hideCard(element);

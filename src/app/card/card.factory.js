@@ -8,7 +8,7 @@ angular.module('memory')
         revealed: false,
         visited: false,
         removed: false,
-        value: value,
+        value: value.toString(),
         suitName: suit,
         rankName: (function() {
           switch(value) {

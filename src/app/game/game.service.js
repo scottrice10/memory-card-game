@@ -2,9 +2,10 @@ angular.module('memory')
   .service('gameService', function($timeout, localStorageService, deckService) {
     'use strict';
     var game = {};
-    game.isComputerTurn = false;
+    game.pause = false;
+    game.isComputerTurn = localStorageService.get('mem.isComputerTurn') ? localStorageService.get('mem.isComputerTurn') : false;
     game.revealedCards = localStorageService.get('mem.revealedCards') ? localStorageService.get('mem.revealedCards') : [];
-    game.remainingCardsArray = localStorageService.get('mem.remainingCards') ? localStorageService.get('mem.remainingCards') : deckService.deck;
+    game.remainingCards = localStorageService.get('mem.remainingCards') ? localStorageService.get('mem.remainingCards') : angular.copy(deckService.deck);
     game.cardsVisitedMap = localStorageService.get('mem.cardsVisitedMap') ? localStorageService.get('mem.cardsVisitedMap') : {};
     game.computerMatches = localStorageService.get('mem.computerMatches') ? localStorageService.get('mem.computerMatches') : [];
     game.playerMatches = localStorageService.get('mem.playerMatches') ? localStorageService.get('mem.playerMatches') : [];
@@ -18,30 +19,29 @@ angular.module('memory')
     };
 
     game.flip = function(card, element) {
-      if(card.removed) {
+      if(card.removed || card.revealed || game.pause) {
         return;
       }
 
-      card.revealed = !card.revealed;
+      card.revealed = true;
+      element.css('background', 'url(assets/cards/' + card.rankName.toString().toLowerCase() + '-' + card.suitName.toString().toLowerCase() + '.png) no-repeat');
+      element.addClass('revealed');
 
-      if(card.revealed) {
-        element.css('background', 'url(assets/cards/' + card.rankName.toString().toLowerCase() + '-' + card.suitName.toString().toLowerCase() + '.png) no-repeat');
-        element.addClass('revealed');
+      addToRevealedCards(card, function(isMatch) {
+        var revealed = jQuery('.revealed');
+        if(!isMatch) {
+          card.revealed = false;
+          revealed.css('background', 'url(assets/card-back.png) no-repeat');
+        }
 
-        addToRevealedCards(card, function(isMatch) {
-          var revealed = jQuery('.revealed');
-          if(!isMatch) {
-            revealed.css('background', 'url(assets/card-back.png) no-repeat');
-          }
+        game.pause = false;
+        revealed.removeClass('revealed');
 
-          revealed.removeClass('revealed');
-        });
-      } else {
-        game.hideCard(element);
-        element.removeClass('revealed');
-
-        removeFromRevealedCards(card);
-      }
+        // change to computer when computer's turn
+        if(game.isComputerTurn) {
+          playComputerHand();
+        }
+      });
     };
 
     function addToRevealedCards(card, callback) {
@@ -50,26 +50,12 @@ angular.module('memory')
       localStorageService.set('mem.revealedCards', game.revealedCards);
 
       if(game.revealedCards.length === 2) {
-        updateCardsVisitedMap(game.revealedCards[0].value, game.revealedCards[1].suitName);
+        game.pause = true;
 
         checkIfMatch(function(isMatch, isGameOver) {
           updateDeck(isMatch);
           updateFlippedCards(isMatch, isGameOver, callback);
-
-          if(game.isComputerTurn) {
-            playComputerHand();
-          }
         });
-      }
-    }
-
-    function removeFromRevealedCards(card) {
-      // when flipping a card back to hidden, remove it from array of revealed cards
-      for(var i = 0; i < game.revealedCards.length; i++) {
-        if(game.revealedCards[i].value === card.value) {
-          game.revealedCards.splice(i, 1);
-          localStorageService.set('mem.revealedCards', game.revealedCards);
-        }
       }
     }
 
@@ -81,8 +67,8 @@ angular.module('memory')
       }
     }
 
-    function incrementMatchesFound(matchedCard1, matchedCard2) {
-      if(game.isComputerTurn) {
+    function incrementMatchesFound(matchedCard1, matchedCard2, isComputerTurn) {
+      if(isComputerTurn) {
         updateNumberOfMatches('computerMatches', matchedCard1, matchedCard2);
       } else {
         updateNumberOfMatches('playerMatches', matchedCard1, matchedCard2);
@@ -125,19 +111,21 @@ angular.module('memory')
       if(game.revealedCards[0].value === game.revealedCards[1].value) {
         isMatch = true;
 
-        incrementMatchesFound(game.revealedCards[0], game.revealedCards[1]);
+        incrementMatchesFound(game.revealedCards[0], game.revealedCards[1], game.isComputerTurn);
 
         //if total matches is 26, then game over and needs to be restarted
-        if(game.playerMatches.length > 13 || game.computerMatches.length > 13) {
+        if(game.playerMatches.length / 2 > 13 || game.computerMatches.length / 2 > 13) {
           isGameOver = true;
 
           updateNumberOfMatches('playerMatches');
           updateNumberOfMatches('computerMatches');
+          updateCardsVisitedMap();
 
           return game.restartGame();
         }
       } else {
         game.isComputerTurn = !game.isComputerTurn;
+        localStorageService.set('mem.isComputerTurn', game.isComputerTurn);
       }
 
       callback(isMatch, isGameOver);
@@ -158,62 +146,85 @@ angular.module('memory')
         game.remainingCards.splice(indexOfCardToRemove, 1);
         localStorageService.set('mem.remainingCards', game.remainingCards);
       } else {
-        game.remainingCards = deckService.deck;
+        game.remainingCards = angular.copy(deckService.deck);
         localStorageService.set('mem.remainingCards', deckService.deck);
       }
     }
 
-    function updateCardsVisitedMap(value, suit) {
-      if(value && suit) {
-        if(game.cardsVisitedMap[value]) {
-          game.cardsVisitedMap[value].push(suit)
-        } else {
-          game.cardsVisitedMap[value] = [suit];
-        }
+    function updateCardsVisitedMap(card, deleteIndex) {
+      if(card && card.value !== null && typeof deleteIndex !== 'undefined' && game.cardsVisitedMap[card.value]) {
+        game.cardsVisitedMap[card.value].splice(deleteIndex, 1);
+      } else if(card && card.value !== null) {
+        if(game.cardsVisitedMap[card.value]) {
 
-        localStorageService.set('mem.cardsVisitedMap', game.cardsVisitedMap);
+          //check whether the card has already been visited
+          var cardArray = game.cardsVisitedMap[card.value];
+          var notYetVisited = true;
+          for(var i = 0; i < cardArray.length; i++) {
+            if(cardArray[i].value === card.value && cardArray[i].suitName === card.suitName) {
+              notYetVisited = false;
+              break;
+            }
+          }
+
+          // if the card has not yet been visited and put into our hashmap, put it in now
+          if(card && notYetVisited) {
+            game.cardsVisitedMap[card.value].push(card);
+          }
+        } else {
+          game.cardsVisitedMap[card.value] = [card];
+        }
       } else {
-        game.remainingCards = {};
-        localStorageService.set('mem.cardsVisitedMap', {});
+        game.cardsVisitedMap = {};
       }
+
+      localStorageService.set('mem.cardsVisitedMap', game.cardsVisitedMap);
     }
 
     function playComputerHand() {
-      if(checkForMatchInVisitedMap()){
-       return;
+      if(checkForMatchInVisitedMap()) {
+        return playComputerHand();
       }
 
-      computerSelectHand();
+      computerSelectCard();
 
       // after computer selects first card, check a second time for match from visited cards
-      if(checkForMatchInVisitedMap()){
-        return;
+      if(checkForMatchInVisitedMap()) {
+        return playComputerHand();
       }
 
-      computerSelectHand();
-
-      game.isComputerTurn = !game.isComputerTurn;
+      computerSelectCard();
     }
 
-    function computerSelectHand() {
+    function computerSelectCard() {
       for(var i = 0; i < game.remainingCards.length; i++) {
         var card = game.remainingCards[i];
-        if(!card.visited){
-          updateCardsVisitedMap(card.value, card.suitName);
-          game.flip(card, jQuery("#" + card.value + card.suitName));
-          break;
+        if(!card.visited) {
+          console.log("visited card:", card.value + card.suitName);
+          card.visited = true;
+          updateCardsVisitedMap(card);
+          return game.flip(card, jQuery('#' + card.value + card.suitName));
         }
       }
     }
 
-    function checkForMatchInVisitedMap(){
+    function checkForMatchInVisitedMap() {
       for(var key in game.cardsVisitedMap) {
         if(game.cardsVisitedMap.hasOwnProperty(key) && game.cardsVisitedMap[key].length > 1) {
           var matchingCard1 = game.cardsVisitedMap[key][0];
           var matchingCard2 = game.cardsVisitedMap[key][1];
 
-          game.flip(matchingCard1, jQuery("#" + matchingCard1.value + matchingCard1.suitName));
-          game.flip(matchingCard2, jQuery("#" + matchingCard2.value + matchingCard2.suitName));
+          if(!matchingCard1.revealed) {
+            game.flip(matchingCard1, jQuery('#' + matchingCard1.value + matchingCard1.suitName));
+          }
+
+          if(!matchingCard2.revealed) {
+            game.flip(matchingCard2, jQuery('#' + matchingCard2.value + matchingCard2.suitName));
+          }
+
+          // when match, removing matching cards from visited map afterwards
+          updateCardsVisitedMap(matchingCard1, 0);
+          updateCardsVisitedMap(matchingCard2, 1);
 
           return true;
         }
