@@ -103,7 +103,10 @@ angular.module('memory')
         updateNumberOfMatches('playerMatches', matchedCard1, matchedCard2);
       }
 
-      deferred.resolve(isMatch, isGameOver);
+      deferred.resolve({
+        isMatch: isMatch,
+        isGameOver: isGameOver
+      });
       return deferred.promise;
     }
 
@@ -152,7 +155,7 @@ angular.module('memory')
       if(game.revealedCards[0].value === game.revealedCards[1].value) {
         isMatch = true;
 
-        incrementMatchesFound(game.revealedCards[0], game.revealedCards[1], game.isComputerTurn, isMatch, isGameOver).then(function(isMatch, isGameOver) {
+        incrementMatchesFound(game.revealedCards[0], game.revealedCards[1], game.isComputerTurn, isMatch, isGameOver).then(function(data) {
           //if total matches is 26, then game over and needs to be restarted
           if(game.playerMatches.length / 2 > 13 || game.computerMatches.length / 2 > 13) {
             isGameOver = true;
@@ -164,8 +167,8 @@ angular.module('memory')
           }
 
           deferred.resolve({
-            isMatch: isMatch,
-            isGameOver: isGameOver
+            isMatch: data.isMatch,
+            isGameOver: data.isGameOver
           });
         });
       } else {
@@ -197,7 +200,6 @@ angular.module('memory')
         for(var i = 0; i < game.remainingCards.length; i++) {
           if(game.remainingCards[i].value === value && game.remainingCards[i].suitName === suitName) {
             game.remainingCards.splice(i, 1);
-            console.log("Remaining cards:", game.remainingCards.length);
             return localStorageService.set('mem.remainingCards', game.remainingCards);
           }
         }
@@ -230,8 +232,6 @@ angular.module('memory')
         } else {
           game.cardsVisitedMap[card.value] = [card];
         }
-
-        console.log(JSON.stringify(game.cardsVisitedMap));
       } else {
         game.cardsVisitedMap = {};
       }
@@ -244,15 +244,14 @@ angular.module('memory')
     var compute = 0;
 
     function playComputerHand() {
-      console.log("play computer hand", compute += 1);
       checkForMatchInVisitedMap().then(function(matchFound) {
         if(matchFound) {
           playComputerHand();
         } else {
           computerSelectCard().then(function() {
             // after computer selects first card, check a second time for match from visited cards
-            checkForMatchInVisitedMap().then(function(bool) {
-              if(bool) {
+            checkForMatchInVisitedMap().then(function(matchFound) {
+              if(matchFound) {
                 playComputerHand();
               } else {
                 computerSelectCard();
@@ -263,18 +262,14 @@ angular.module('memory')
       });
     }
 
-    var outside = 0;
-    var inside = 0;
-
     function computerSelectCard() {
       var deferred = $q.defer();
-      console.log("outside loop", outside += 1);
 
       var card = null;
       for(var i = 0; i < game.remainingCards.length; i++) {
         if(!game.remainingCards[i].visited && game.remainingCards[i].value) {
           card = game.remainingCards[i];
-          console.log("inside loop", inside += 1);
+          card.revealed = false;
           break;
         }
       }
@@ -308,10 +303,12 @@ angular.module('memory')
 
       if(matchingCard1 && matchingCard2) {
         // when match, removing matching cards from visited map afterwards
-        $q.all([game.flip(matchingCard1, jQuery('#' + matchingCard1.value + matchingCard1.suitName)),
-          game.flip(matchingCard2, jQuery('#' + matchingCard2.value + matchingCard2.suitName)),
-          updateCardsVisitedMap(matchingCard1, true), updateCardsVisitedMap(matchingCard2, true)]).then(function() {
-          deferred.resolve(true);
+        game.flip(matchingCard1, jQuery('#' + matchingCard1.value + matchingCard1.suitName)).then(function(){
+          game.flip(matchingCard2, jQuery('#' + matchingCard2.value + matchingCard2.suitName)).then(function() {
+            $q.all([updateCardsVisitedMap(matchingCard1, true), updateCardsVisitedMap(matchingCard2, true)]).then(function() {
+              deferred.resolve(true);
+            });
+          });
         });
       } else {
         deferred.resolve(false);
@@ -320,12 +317,11 @@ angular.module('memory')
       return deferred.promise;
     }
 
-    function setComputerTurn(bool) {
-      console.log("compute turn is: ", bool);
-      game.isComputerTurn = bool;
-      localStorageService.set('mem.isComputerTurn', bool);
+    function setComputerTurn(isOn) {
+      game.isComputerTurn = isOn;
+      localStorageService.set('mem.isComputerTurn', isOn);
 
-      if(bool) {
+      if(isOn) {
         playComputerHand();
       }
     }
