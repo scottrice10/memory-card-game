@@ -10,7 +10,8 @@ angular.module('memory', [
         views: {
           // the main template
           '': {
-            templateUrl: '/memory/app.html'
+            controller: 'AppCtrl',
+            templateUrl: '/memory/app/app.html'
           },
 
           // the child view

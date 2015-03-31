@@ -1,5 +1,21 @@
 <div class="scoreboard">
-  <h3>Matches</h3>
-  You: {{gameService.playerMatches.length / 2}}<br>
-  Computer: {{gameService.computerMatches.length / 2}}
+  <div>
+    <h3>Matches</h3>
+    <span class="player-toggle" ng-hide="isComputerTurn"> > </span> <span class="player-score">You: {{playerMatches.length / 2}}</span><br>
+    <span class="player-toggle" ng-show="isComputerTurn"> > </span> <span class="player-score">Computer: {{computerMatches.length / 2}}</span>
+  </div>
+
+  <div>
+    <h3>Matched Pairs</h3>
+    <span class="score-empty-message" ng-show="pairs.length === 0"> No matches yet</span>
+    <ul class="matched-pair-list">
+      <li ng-repeat="pair in pairs track by $index">
+        <span ng-repeat="card in pair"
+              ng-class="{'black-card-label-border': !isRedCardLabel(card), 'red-card-label-border': isRedCardLabel(card)}">
+          {{card.rankName}}{{card.suitImg}}<span ng-show="!$last"> | </span>
+        </span>
+      </li>
+    </ul>
+  </div>
+
 </div>

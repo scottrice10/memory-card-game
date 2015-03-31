@@ -3,13 +3,14 @@ angular.module('memory')
     'use strict';
     var card = {};
 
-    card.create = function(value, suit) {
+    card.create = function(value, suit, suitImg) {
       return {
         revealed: false,
         visited: false,
         removed: false,
         value: value.toString(),
         suitName: suit,
+        suitImg: suitImg,
         rankName: (function() {
           switch(value) {
             case 1:

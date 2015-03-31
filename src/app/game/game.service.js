@@ -1,5 +1,5 @@
 angular.module('memory')
-  .service('gameService', function($q, $timeout, localStorageService, deckService) {
+  .service('gameService', function($rootScope, $q, $timeout, localStorageService, deckService) {
     'use strict';
     var game = {};
     game.pause = false;
@@ -9,9 +9,28 @@ angular.module('memory')
     game.cardsVisitedMap = localStorageService.get('mem.cardsVisitedMap') ? localStorageService.get('mem.cardsVisitedMap') : {};
     game.computerMatches = localStorageService.get('mem.computerMatches') ? localStorageService.get('mem.computerMatches') : [];
     game.playerMatches = localStorageService.get('mem.playerMatches') ? localStorageService.get('mem.playerMatches') : [];
+    game.pairs = localStorageService.get('mem.pairs') ? localStorageService.get('mem.pairs') : [];
 
     game.restartGame = function() {
-      deckService.newDeck();
+      game.pause = false;
+      game.isComputerTurn = false;
+      localStorageService.set('mem.isComputerTurn', false);
+      game.revealedCards = [];
+      localStorageService.set('mem.revealedCards', []);
+      game.remainingCards = angular.copy(deckService.deck);
+      localStorageService.set('mem.remainingCards', game.remainingCards);
+      game.cardsVisitedMap = {};
+      localStorageService.set('mem.cardsVisitedMap', {});
+      game.computerMatches = [];
+      localStorageService.set('mem.computerMatches', []);
+      game.playerMatches = [];
+      localStorageService.set('mem.playerMatches', []);
+      game.pairs = [];
+      localStorageService.set('mem.pairs', []);
+
+      deckService.deck = deckService.newDeck();
+
+      $rootScope.$broadcast('restartGame');
     };
 
     game.hideCard = function(element) {
@@ -20,7 +39,7 @@ angular.module('memory')
 
     game.flip = function(card, element) {
       var deferred = $q.defer();
-      if(card.removed || card.revealed || game.pause || !card.value) {
+      if(card.removed || !card.value) {
         deferred.resolve();
         return deferred.promise;
       } else {
@@ -56,6 +75,8 @@ angular.module('memory')
       //keep track of revealed cards
       game.revealedCards.push(card);
       localStorageService.set('mem.revealedCards', game.revealedCards);
+
+      console.log("revealed: ", JSON.stringify(game.revealedCards));
 
       if(game.revealedCards.length === 2) {
         game.pause = true;
@@ -95,18 +116,22 @@ angular.module('memory')
       return deferred.promise;
     }
 
-    function incrementMatchesFound(matchedCard1, matchedCard2, isComputerTurn, isMatch, isGameOver) {
+    function incrementMatchesFound(matchedCard1, matchedCard2, isMatch, isGameOver) {
       var deferred = $q.defer();
-      if(isComputerTurn) {
+      if(game.isComputerTurn) {
         updateNumberOfMatches('computerMatches', matchedCard1, matchedCard2);
       } else {
         updateNumberOfMatches('playerMatches', matchedCard1, matchedCard2);
       }
 
+      game.pairs.push([matchedCard1, matchedCard2]);
+      localStorageService.set('mem.pairs', game.pairs);
+
       deferred.resolve({
         isMatch: isMatch,
         isGameOver: isGameOver
       });
+
       return deferred.promise;
     }
 
@@ -155,9 +180,9 @@ angular.module('memory')
       if(game.revealedCards[0].value === game.revealedCards[1].value) {
         isMatch = true;
 
-        incrementMatchesFound(game.revealedCards[0], game.revealedCards[1], game.isComputerTurn, isMatch, isGameOver).then(function(data) {
+        incrementMatchesFound(game.revealedCards[0], game.revealedCards[1], isMatch, isGameOver).then(function(data) {
           //if total matches is 26, then game over and needs to be restarted
-          if(game.playerMatches.length / 2 > 13 || game.computerMatches.length / 2 > 13) {
+          if(game.playerMatches.length + game.computerMatches.length === 52) {
             isGameOver = true;
 
             $q.all([updateNumberOfMatches('playerMatches'), updateNumberOfMatches('computerMatches'), updateCardsVisitedMap()])
@@ -213,7 +238,7 @@ angular.module('memory')
       var deferred = $q.defer();
       if(card && card.value && isDelete && game.cardsVisitedMap[card.value]) {
         game.cardsVisitedMap[card.value].shift();
-      } else if(card && card.value) {
+      } else if(card && card.value && card.value != "null") {
         updateRemainingCards(card.value, card.suitName);
 
         if(game.cardsVisitedMap[card.value] && game.cardsVisitedMap[card.value].length > 0) {
@@ -227,6 +252,8 @@ angular.module('memory')
             // if the card is not yet in our hashmap, put it in now
             if(i === cardArray.length - 1) {
               game.cardsVisitedMap[card.value].push(card);
+
+              console.log(JSON.stringify(game.cardsVisitedMap));
             }
           }
         } else {
@@ -240,8 +267,6 @@ angular.module('memory')
       deferred.resolve(card);
       return deferred.promise;
     }
-
-    var compute = 0;
 
     function playComputerHand() {
       checkForMatchInVisitedMap().then(function(matchFound) {
@@ -269,7 +294,6 @@ angular.module('memory')
       for(var i = 0; i < game.remainingCards.length; i++) {
         if(!game.remainingCards[i].visited && game.remainingCards[i].value) {
           card = game.remainingCards[i];
-          card.revealed = false;
           break;
         }
       }
@@ -296,17 +320,21 @@ angular.module('memory')
       for(var key in game.cardsVisitedMap) {
         if(game.cardsVisitedMap.hasOwnProperty(key) && game.cardsVisitedMap[key].length > 1) {
           matchingCard1 = game.cardsVisitedMap[key][0];
+          matchingCard1.revealed = false;
           matchingCard2 = game.cardsVisitedMap[key][1];
+          matchingCard2.revealed = false;
           break;
         }
       }
 
       if(matchingCard1 && matchingCard2) {
         // when match, removing matching cards from visited map afterwards
-        game.flip(matchingCard1, jQuery('#' + matchingCard1.value + matchingCard1.suitName)).then(function(){
+        game.flip(matchingCard1, jQuery('#' + matchingCard1.value + matchingCard1.suitName)).then(function() {
           game.flip(matchingCard2, jQuery('#' + matchingCard2.value + matchingCard2.suitName)).then(function() {
-            $q.all([updateCardsVisitedMap(matchingCard1, true), updateCardsVisitedMap(matchingCard2, true)]).then(function() {
-              deferred.resolve(true);
+            updateCardsVisitedMap(matchingCard1, true).then(function() {
+              updateCardsVisitedMap(matchingCard2, true).then(function() {
+                deferred.resolve(true);
+              });
             });
           });
         });
@@ -320,6 +348,8 @@ angular.module('memory')
     function setComputerTurn(isOn) {
       game.isComputerTurn = isOn;
       localStorageService.set('mem.isComputerTurn', isOn);
+
+      console.log("Computer's turn: ", isOn);
 
       if(isOn) {
         playComputerHand();

@@ -19,12 +19,13 @@ angular.module('memory')
 
     function sortedDeck() {
       var suits = ['Spades', 'Diamonds', 'Clubs', 'Hearts'];
+      var suitImgs = ['♠', '♦', '♣', '♥'];
       var values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
       var deck = [];
 
-      suits.forEach(function(suit) {
+      suits.forEach(function(suit, index) {
         values.forEach(function(value) {
-          deck.push(cardFactory.create(value, suit));
+          deck.push(cardFactory.create(value, suit, suitImgs[index]));
         });
       });
 
