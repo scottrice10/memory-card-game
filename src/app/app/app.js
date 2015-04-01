@@ -1,6 +1,7 @@
 angular.module('memory', [
   'ui.router',
-  'LocalStorageModule'
+  'LocalStorageModule',
+  'ngTouch'
 ])
   .config(function($urlRouterProvider, $locationProvider, $stateProvider) {
     'use strict';
