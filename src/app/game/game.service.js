@@ -36,7 +36,6 @@ angular.module('memory')
     };
 
     game.flip = function(card, element) {
-      console.log("card value getting flipped:", card.value + card.suitName);
       var deferred = $q.defer();
       if(card.removed) {
         //if still computer turn, broadcast event to computer player service
