@@ -12,7 +12,7 @@
       <li>
         <span ng-repeat="revealed in revealedCards track by $index"
               ng-class="{'black-card-label-border': !isRedCardLabel(revealed), 'red-card-label-border': isRedCardLabel(revealed)}">
-          {{revealed.rankName}}<span class="suit-img">{{revealed.suitImg}}</span><span ng-show="!$last"> | </span>
+          {{revealed.rankName}}<span class="suit-img">{{revealed.suitImg}}</span><span ng-show="!$last">&nbsp;|&nbsp;</span>
         </span>
       </li>
     </ul>
@@ -25,7 +25,7 @@
       <li ng-repeat="pair in pairs track by $index">
         <span ng-repeat="card in pair track by $index"
               ng-class="{'black-card-label-border': !isRedCardLabel(card), 'red-card-label-border': isRedCardLabel(card)}">
-          {{card.rankName}}<span class="suit-img">{{card.suitImg}}</span><span ng-show="!$last"> | </span>
+          {{card.rankName}}<span class="suit-img">{{card.suitImg}}</span><span ng-show="!$last">&nbsp;|&nbsp;</span>
         </span>
       </li>
     </ul>

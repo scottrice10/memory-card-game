@@ -5,7 +5,7 @@ angular.module('memory')
     $scope.playerMatches = gameService.playerMatches;
     $scope.computerMatches = gameService.computerMatches;
     $scope.pairs = gameService.pairs;
-    $scope.revealedCards = gameService.revealedCards;
+    $scope.revealedCards = playerService.revealedCards;
 
     $scope.createNewGame = function(){
       gameService.restartGame();
