@@ -143,7 +143,7 @@ gulp.task('statics', g.serve({
 }));
 
 gulp.task('statics-dist', g.serve({
-  port: 80,
+  port: 3000,
   root: ['./dist']
 }));
 
