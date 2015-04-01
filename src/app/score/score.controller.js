@@ -1,10 +1,11 @@
 angular.module('memory')
-  .controller('ScoreCtrl', function($scope, gameService) {
+  .controller('ScoreCtrl', function($scope, gameService, computerPlayerService, playerService) {
     'use strict';
-    $scope.isComputerTurn = gameService.isComputerTurn;
+    $scope.isComputerTurn = computerPlayerService.isComputerTurn;
     $scope.playerMatches = gameService.playerMatches;
     $scope.computerMatches = gameService.computerMatches;
     $scope.pairs = gameService.pairs;
+    $scope.revealedCards = gameService.revealedCards;
 
     $scope.createNewGame = function(){
       gameService.restartGame();
@@ -16,9 +17,18 @@ angular.module('memory')
 
     //init
     $scope.$on('restartGame', function(){
-      $scope.isComputerTurn = gameService.isComputerTurn;
+      $scope.isComputerTurn = computerPlayerService.isComputerTurn;
       $scope.playerMatches = gameService.playerMatches;
       $scope.computerMatches = gameService.computerMatches;
       $scope.pairs = gameService.pairs;
+      $scope.revealedCards = playerService.revealedCards;
+    });
+
+    $scope.$on('revealedCardsUpdated', function(){
+      $scope.revealedCards = playerService.revealedCards;
+    });
+
+    $scope.$on('computerTurnUpdated', function(){
+      $scope.isComputerTurn = computerPlayerService.isComputerTurn;
     });
   });

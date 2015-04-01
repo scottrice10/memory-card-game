@@ -4,7 +4,8 @@ angular.module('memory')
     return {
       restrict: 'E',
       scope: {
-        card: '='
+        card: '=',
+        cardId: '='
       },
       templateUrl: '/memory/card/card.html',
       link: function memCardLink(scope, element) {
@@ -15,7 +16,7 @@ angular.module('memory')
         //init
         scope.hideCard(element);
       },
-      controller: function memCardController($scope, gameService) {
+      controller: function memCardController($scope, gameService, playerService) {
         $scope.hideCard = gameService.hideCard;
         $scope.flip = gameService.flip;
       }

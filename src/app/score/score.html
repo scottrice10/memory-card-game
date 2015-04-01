@@ -6,13 +6,26 @@
   </div>
 
   <div>
+    <h3>Current Selection</h3>
+    <span class="score-empty-message" ng-show="revealedCards.length === 0"> No selection</span>
+    <ul class="matched-pair-list">
+      <li>
+        <span ng-repeat="revealed in revealedCards track by $index"
+              ng-class="{'black-card-label-border': !isRedCardLabel(revealed), 'red-card-label-border': isRedCardLabel(revealed)}">
+          {{revealed.rankName}}<span class="suit-img">{{revealed.suitImg}}</span><span ng-show="!$last"> | </span>
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <div>
     <h3>Matched Pairs</h3>
     <span class="score-empty-message" ng-show="pairs.length === 0"> No matches yet</span>
     <ul class="matched-pair-list">
       <li ng-repeat="pair in pairs track by $index">
-        <span ng-repeat="card in pair"
+        <span ng-repeat="card in pair track by $index"
               ng-class="{'black-card-label-border': !isRedCardLabel(card), 'red-card-label-border': isRedCardLabel(card)}">
-          {{card.rankName}}{{card.suitImg}}<span ng-show="!$last"> | </span>
+          {{card.rankName}}<span class="suit-img">{{card.suitImg}}</span><span ng-show="!$last"> | </span>
         </span>
       </li>
     </ul>

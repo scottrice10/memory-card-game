@@ -4,12 +4,12 @@
 }
 
 .player-toggle {
-  margin-right: -17px;
+  margin-right: -19px;
 }
 
 .matched-pair-list,
 .matched-pair-list li {
-  font-size: 16px;
+  font-size: 20px;
   list-style: none;
   margin-left: 20px;
 }
@@ -20,4 +20,14 @@
 
 .red-card-label-border {
   text-shadow: 0 0 4px red;
+}
+
+.black-card-label-border .suit-img {
+  text-shadow: none;
+  color: black;
+}
+
+.red-card-label-border .suit-img{
+  text-shadow: none;
+  color: red;
 }

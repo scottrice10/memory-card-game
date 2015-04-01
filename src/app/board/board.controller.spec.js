@@ -10,7 +10,7 @@ describe('BoardCtrl', function () {
     scope = $injector.get('$rootScope');
 
     boardCtrl = function () {
-      return $injector.get('$controller')('BoardCtrl', {'$scope': scope});
+      return $injector.get('$controller');
     };
   }));
 
