@@ -144,7 +144,7 @@ gulp.task('statics', g.serve({
 
 gulp.task('statics-dist', g.serve({
   port: 80,
-  root: ['./.tmp', './.tmp/src/app', './src/app', './bower_components']
+  root: ['./dist']
 }));
 
 /**
@@ -173,7 +173,7 @@ gulp.task('watch', ['statics', 'default'], function () {
   });
 });
 
-gulp.task('serve:dist', ['watch-dist']);
+gulp.task('serve:dist', ['dist', 'watch-dist']);
 gulp.task('watch-dist', ['statics-dist'], function () {
   isWatching = true;
   // Initiate livereload server:
