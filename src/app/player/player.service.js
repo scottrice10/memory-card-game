@@ -19,7 +19,7 @@ angular.module('memory')
           player.matchesStack.push(card);
           player.matchesStack.push(player.cardsVisitedMap[card.value].pop());
           localStorageService.set('mem.cardsVisitedMap', player.cardsVisitedMap);
-          localStorageService.set('mem.matchesStack', player.cardsVisitedMap);
+          localStorageService.set('mem.matchesStack', player.matchesStack);
           deferred.resolve(card);
         } else {
           player.cardsVisitedMap[card.value] = [card];

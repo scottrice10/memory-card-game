@@ -44,38 +44,6 @@ angular.module('memory')
       return deferred.promise;
     };
 
-    computer.checkForMatchInVisitedMap = function() {
-      var deferred = $q.defer();
-      var matchingCard1 = null;
-      var matchingCard2 = null;
-      for(var key in playerService.cardsVisitedMap) {
-        if(playerService.cardsVisitedMap.hasOwnProperty(key) && playerService.cardsVisitedMap[key].length > 1) {
-          matchingCard1 = playerService.cardsVisitedMap[key][0];
-          matchingCard1.revealed = false;
-          matchingCard2 = playerService.cardsVisitedMap[key][1];
-          matchingCard2.revealed = false;
-          break;
-        }
-      }
-
-      if(matchingCard1 && matchingCard2) {
-        // when match, removing matching cards from visited map afterwards
-        computer.clickCard(matchingCard1).then(function() {
-          playerService.updateCardsVisitedMap(matchingCard1, true).then(function() {
-            computer.clickCard(matchingCard2).then(function() {
-              playerService.updateCardsVisitedMap(matchingCard2, true).then(function() {
-                deferred.resolve(true);
-              });
-            });
-          });
-        });
-      } else {
-        deferred.resolve(false);
-      }
-
-      return deferred.promise;
-    };
-
     computer.setComputerTurn = function(isOn) {
       computer.isComputerTurn = isOn;
       localStorageService.set('mem.isComputerTurn', isOn);

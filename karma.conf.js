@@ -12,10 +12,37 @@ module.exports = function ( karma ) {
      * Filled by the task `gulp karma-conf`
      */
     files: [
-    ],
+        'bower_components/angular/angular.js',
+        'bower_components/angular-ui-router/release/angular-ui-router.js',
+        'bower_components/angular-local-storage/dist/angular-local-storage.js',
+        'bower_components/jquery/dist/jquery.js',
+        'bower_components/angular-touch/angular-touch.js',
+        'bower_components/angular-mocks/angular-mocks.js',
+        'src/app/app/app.js',
+        'src/app/score/score.js',
+        'src/app/score/score.controller.js',
+        'src/app/player/player.service.js',
+        'src/app/game/game.service.js',
+        'src/app/deck/deck.service.js',
+        'src/app/board/board.js',
+        'src/app/board/board.controller.js',
+        'src/app/computerPlayer/computerPlayer.service.js',
+        'src/app/card/card.factory.js',
+        'src/app/card/card.directive.js',
+        'src/app/app/app.controller.js',
+        '.tmp/memory-templates.js',
+        'src/app/card/card.directive.spec.js',
+        'src/app/card/card.factory.spec.js',
+        'src/app/computerPlayer/computerPlayer.service.spec.js',
+        'src/app/board/board.controller.spec.js',
+        'src/app/deck/deck.service.spec.js',
+        'src/app/game/game.service.spec.js',
+        'src/app/player/player.service.spec.js',
+        'src/app/score/score.controller.spec.js'
+      ],
 
-    frameworks: [ 'mocha', 'chai' ],
-    plugins: [ 'karma-mocha', 'karma-chai', 'karma-phantomjs-launcher' ],
+    frameworks: [ 'jasmine', 'chai' ],
+    plugins: [ 'karma-jasmine', 'karma-chai', 'karma-phantomjs-launcher' ],
 
     /**
      * How to report, by default.
